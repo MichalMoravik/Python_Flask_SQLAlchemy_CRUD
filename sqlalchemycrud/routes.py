@@ -1,109 +1,8 @@
-from flask import Flask, request, jsonify
-# SQLAlchemy provides SQL syntax in Python
-from flask_sqlalchemy import SQLAlchemy
-# Marshmallow converts complex datatypes, such as objects, to and from native Python datatypes.
-from flask_marshmallow import Marshmallow
-import os
+from flask import request, jsonify
+# import app for routes (@app.route)
+from sqlalchemycrud import app
+from sqlalchemycrud.models import *
 
-# Init server
-app = Flask(__name__)
-
-############# DATABASE #############
-# Setup sql-alchemy database URI to locate a database file
-# Database file will be in a root directory
-basedir = os.path.abspath(os.path.dirname(__file__))
-# Database setup
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + \
-    os.path.join(basedir, 'db.sqlite')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# Init database
-db = SQLAlchemy(app)
-# Init marshmallow
-ma = Marshmallow(app)
-
-# for attr in dir(db):
-#     print(f"{attr}")
-
-############# MODELS #############
-############# Product Class/Model #############
-class Product(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    # index param. is indexing 
-    name = db.Column(db.String(100), unique=True, index=True)
-    desc = db.Column(db.String(200))
-    price = db.Column(db.Float)
-    qty = db.Column(db.Integer)
-
-    def __init__(self, name, desc, price, qty):
-        self.name = name
-        self.desc = desc
-        self.price = price
-        self.qty = qty
-
-# Product Schema
-class ProductSchema(ma.Schema):
-    class Meta:
-        fields = ('id', 'name', 'desc', 'price', 'qty')
-
-# Init schema
-# For one product manipulation
-product_schema = ProductSchema()
-# For many products manipulation
-products_schema = ProductSchema(many=True)
-
-
-############# Customer Class/Model #############
-class Customer(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    email = db.Column(db.String(255), unique=True)
-    # pseudo column (not visible) creating in Order class and 
-    # this will be a "customer" (backref) of the Order class
-    orders = db.relationship('Order', backref='customer')
-
-    def __init__(self, name, email):
-        self.name = name
-        self.email = email
-
-class CustomerSchema(ma.Schema):
-    class Meta:
-        fields = ('id', 'name', 'email')
-
-customer_schema = CustomerSchema()
-customers_schema = CustomerSchema(many=True)
-
-
-############# Order Class/Model #############
-class Order(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    delivery_address = db.Column(db.String(400))
-    status = db.Column(db.Integer)
-    # FK column pointing to customer table in DB (that's why lowercase)
-    fk_customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'))
-    # pseudo column for Order - Product junction
-    products = db.relationshop('Product', secondary = orders_products, backref = db.backref('orders', lazy = 'dynamic'))
-
-    def __init__(self, delivery_address, status, fk_customer_id):
-        self.delivery_address = delivery_address
-        self.status = status
-        self.fk_customer_id = fk_customer_id
-
-class OrderSchema(ma.Schema):
-    class Meta:
-        fields = ('id', 'delivery_address', 'status', 'fk_customer_id')
-
-order_schema = OrderSchema()
-orders_schema = OrderSchema(many=True)
-
-
-############# Orders - Products junction table #############
-orders_products = db.Table('orders_products',
-    db.Column('order_id', db.Integer, db.ForeignKey('order.id')),
-    db.Column('product_id', db.Integer, db.ForeignKey('product.id'))
-)
-
-
-############# ROUTES #############
 ############# Product #############
 # Create a product
 @app.route('/product', methods=['POST'])
@@ -262,9 +161,3 @@ def delete_order(id):
     db.session.commit()
 
     return order_schema.jsonify(order)
-
-
-############# MAIN #############
-# Run server
-if __name__ == '__main__':
-    app.run(debug=True)
