@@ -114,11 +114,23 @@ def delete_customer(id):
 # Create a order
 @app.route('/order', methods=['POST'])
 def add_order():
+    # from request
     delivery_address = request.json['delivery_address']
     status = request.json['status']
     fk_customer_id = request.json['fk_customer_id']
+    productsIdArray = request.json['productsIdArray']
+    
+    # find customer in the database
+    customer = Customer.query.filter_by(id=fk_customer_id).first()
 
-    new_order = Order(delivery_address, status, fk_customer_id)
+    # find products in the database
+    products = []
+    for product_id in productsIdArray:
+        product = Product.query.filter_by(id=product_id).first()
+        products.append(product)
+
+    new_order = Order(delivery_address, status, fk_customer_id, customer, products)
+
     db.session.add(new_order)
     db.session.commit()
 
