@@ -152,14 +152,27 @@ def get_order(id):
 # Update a order
 @app.route('/order/<id>', methods=['PUT'])
 def update_order(id):
+    # from request
     delivery_address = request.json['delivery_address']
     status = request.json['status']
     fk_customer_id = request.json['fk_customer_id']
+    productsIdArray = request.json['productsIdArray']
+    
+    # find customer in the database
+    customer = Customer.query.filter_by(id=fk_customer_id).first()
+
+    # find products in the database
+    products = []
+    for product_id in productsIdArray:
+        product = Product.query.filter_by(id=product_id).first()
+        products.append(product)
 
     order = Order.query.get(id)
     order.delivery_address = delivery_address
     order.status = status
     order.fk_customer_id = fk_customer_id
+    order.customer = customer
+    order.products = products
 
     db.session.commit()
 
