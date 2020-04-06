@@ -1,5 +1,5 @@
-# this is a module which run my application
-# "app" variable we are importing needs to exist in the package (in __init__.py)
+# run.py is a module running this application
+# app variable exists in the package, inside __init__.py class
 from sqlalchemycrud import app
 
 # Run app

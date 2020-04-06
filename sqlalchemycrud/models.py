@@ -1,7 +1,6 @@
-# this will go to __init__.py file and import db
+# importing from __init__.py file
 from sqlalchemycrud import db, ma
 
-############# MODELS #############
 ############# Customer Class/Model #############
 class Customer(db.Model):
     __tablename__ = 'customers'
@@ -21,13 +20,11 @@ customer_schema = CustomerSchema()
 customers_schema = CustomerSchema(many=True)
 
 
-
 ############# Orders - Products junction table #############
 orders_products = db.Table('orders_products',
     db.Column('order_id', db.Integer, db.ForeignKey('orders.id')),
     db.Column('product_id', db.Integer, db.ForeignKey('products.id'))
 )
-
 
 
 ############# Order Class/Model #############
@@ -59,7 +56,6 @@ order_schema = OrderSchema()
 orders_schema = OrderSchema(many=True)
 
 
-
 ############# Product Class/Model #############
 class Product(db.Model):
     __tablename__ = 'products'
@@ -76,13 +72,9 @@ class Product(db.Model):
         self.price = price
         self.qty = qty
 
-# Product Schema
 class ProductSchema(ma.Schema):
     class Meta:
         fields = ('id', 'name', 'desc', 'price', 'qty')
 
-# Init schema
-# For one product manipulation
 product_schema = ProductSchema()
-# For many products manipulation
 products_schema = ProductSchema(many=True)
